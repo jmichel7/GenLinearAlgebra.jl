@@ -21,7 +21,7 @@ Here we are interested in functions which work over any field (or sometimes any 
 For more information, look at the helpstrings of `echelon!, rowspace, independent_rows, in_rowspace, intersect_rowspace,  lnullspace, GenLinearAlgebra.nullspace, GenLinearAlgebra.rank, solutionmat,   charpoly, comatrix, permanent, symmetric_power, exterior_power, ratio,   diagconj_elt, transporter, bigcell_decomposition, traces_words_mats`.
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L1-L18' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L1-L18' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.echelon!' href='#GenLinearAlgebra.echelon!'>#</a>
 **`GenLinearAlgebra.echelon!`** &mdash; *Function*.
@@ -49,7 +49,7 @@ julia> echelon!(m)
 ```
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L27-L48' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L27-L48' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.rowspace' href='#GenLinearAlgebra.rowspace'>#</a>
 **`GenLinearAlgebra.rowspace`** &mdash; *Function*.
@@ -67,14 +67,14 @@ julia> m=[1 2;2 4;5 6]
  2  4
  5  6
 
-julia> GenLinearAlgebra.rowspace(m)
+julia> rowspace(m)
 2×2 view(::Matrix{Rational{Int64}}, 1:2, :) with eltype Rational{Int64}:
  1//1  0//1
  0//1  1//1
 ```
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L73-L94' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L73-L94' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.rank' href='#GenLinearAlgebra.rank'>#</a>
 **`GenLinearAlgebra.rank`** &mdash; *Function*.
@@ -96,7 +96,7 @@ julia> GenLinearAlgebra.rank(hilbert(11)) # correct value
 ```
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L128-L143' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L128-L143' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.independent_rows' href='#GenLinearAlgebra.independent_rows'>#</a>
 **`GenLinearAlgebra.independent_rows`** &mdash; *Function*.
@@ -114,14 +114,14 @@ julia> m=[1 2;2 4;5 6]
  2  4
  5  6
 
-julia> GenLinearAlgebra.independent_rows(m)
+julia> independent_rows(m)
 2-element Vector{Int64}:
  1
  3
 ```
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L102-L120' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L102-L120' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.in_rowspace' href='#GenLinearAlgebra.in_rowspace'>#</a>
 **`GenLinearAlgebra.in_rowspace`** &mdash; *Function*.
@@ -133,7 +133,7 @@ julia> GenLinearAlgebra.independent_rows(m)
 whether `v` is in the rowspace `m`. The matrix `m` should be an echelonized matrix like what is returned by function `rowspace`.
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L196-L201' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L196-L201' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.intersect_rowspace' href='#GenLinearAlgebra.intersect_rowspace'>#</a>
 **`GenLinearAlgebra.intersect_rowspace`** &mdash; *Function*.
@@ -145,7 +145,7 @@ whether `v` is in the rowspace `m`. The matrix `m` should be an echelonized matr
 The intersection of the rowspaces of `m` and `n`.
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L184-L188' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L184-L188' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.lnullspace' href='#GenLinearAlgebra.lnullspace'>#</a>
 **`GenLinearAlgebra.lnullspace`** &mdash; *Function*.
@@ -157,7 +157,7 @@ The intersection of the rowspaces of `m` and `n`.
 The left nullspace of `m`
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L177-L181' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L177-L181' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.nullspace' href='#GenLinearAlgebra.nullspace'>#</a>
 **`GenLinearAlgebra.nullspace`** &mdash; *Function*.
@@ -169,7 +169,7 @@ The left nullspace of `m`
 computes the right nullspace of `m` in a type-preserving way. Not exported to avoid conflict with LinearAlgebra
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L146-L151' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L146-L151' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.solutionmat' href='#GenLinearAlgebra.solutionmat'>#</a>
 **`GenLinearAlgebra.solutionmat`** &mdash; *Function*.
@@ -203,7 +203,7 @@ julia> solutionmat(m,[10, 20, -10])
 ```
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L466-L494' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L466-L494' class='documenter-source'>source</a><br>
 
 
 `solutionmat(m,n::AbstractMatrix)`
@@ -211,7 +211,7 @@ julia> solutionmat(m,[10, 20, -10])
 return a matrix `x` such that `x*m==n`. This is interesting when `m`  is not invertible.
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L542-L547' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L542-L547' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.charpoly' href='#GenLinearAlgebra.charpoly'>#</a>
 **`GenLinearAlgebra.charpoly`** &mdash; *Function*.
@@ -223,7 +223,7 @@ return a matrix `x` such that `x*m==n`. This is interesting when `m`  is not inv
 The characteristic polynomial of `M` (as a `Vector` of coefficients). This function works over any ring.
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L227-L232' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L227-L232' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.comatrix' href='#GenLinearAlgebra.comatrix'>#</a>
 **`GenLinearAlgebra.comatrix`** &mdash; *Function*.
@@ -235,7 +235,7 @@ The characteristic polynomial of `M` (as a `Vector` of coefficients). This funct
 is defined by `comatrix(M)*M=det(M)*one(M)`. This function works over any ring.
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L235-L240' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L235-L240' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.permanent' href='#GenLinearAlgebra.permanent'>#</a>
 **`GenLinearAlgebra.permanent`** &mdash; *Function*.
@@ -257,7 +257,7 @@ julia> permanent([1 1 0 1 0 0 0; 0 1 1 0 1 0 0;0 0 1 1 0 1 0; 0 0 0 1 1 0 1;1 0 
 ```
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L372-L391' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L372-L391' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.symmetric_power' href='#GenLinearAlgebra.symmetric_power'>#</a>
 **`GenLinearAlgebra.symmetric_power`** &mdash; *Function*.
@@ -282,7 +282,7 @@ julia> Int.(symmetric_power(m,2))
 ```
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L402-L420' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L402-L420' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.exterior_power' href='#GenLinearAlgebra.exterior_power'>#</a>
 **`GenLinearAlgebra.exterior_power`** &mdash; *Function*.
@@ -312,7 +312,7 @@ julia> exterior_power(M,2)
 ```
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L342-L366' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L342-L366' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.ratio' href='#GenLinearAlgebra.ratio'>#</a>
 **`GenLinearAlgebra.ratio`** &mdash; *Function*.
@@ -324,7 +324,7 @@ julia> exterior_power(M,2)
 ratio `v/w`, `nothing` if `v` is not a multiple of `w`.
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L454-L458' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L454-L458' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.diagconj_elt' href='#GenLinearAlgebra.diagconj_elt'>#</a>
 **`GenLinearAlgebra.diagconj_elt`** &mdash; *Function*.
@@ -348,7 +348,7 @@ julia> diagconj_elt(M,N)
 ```
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L550-L568' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L550-L568' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.transporter' href='#GenLinearAlgebra.transporter'>#</a>
 **`GenLinearAlgebra.transporter`** &mdash; *Function*.
@@ -360,7 +360,7 @@ julia> diagconj_elt(M,N)
 `l1`  and `l2` should be vectors of  the same length of square matrices all of the same size. The result is a basis of the vector space of matrices `A` such  that for any `i` we have  `A*l1[i]=l2[i]*A` –- the basis is returned as  a vector of matrices, empty if the vector space is 0. This is useful to find whether two representations are isomorphic.
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L427-L435' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L427-L435' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.bigcell_decomposition' href='#GenLinearAlgebra.bigcell_decomposition'>#</a>
 **`GenLinearAlgebra.bigcell_decomposition`** &mdash; *Function*.
@@ -415,7 +415,7 @@ true
 ```
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L243-L302' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L243-L302' class='documenter-source'>source</a><br>
 
 <a id='GenLinearAlgebra.traces_words_mats' href='#GenLinearAlgebra.traces_words_mats'>#</a>
 **`GenLinearAlgebra.traces_words_mats`** &mdash; *Function*.
@@ -437,5 +437,5 @@ julia> [traces_words_mats(R,words)] # 17th character of F4
 ```
 
 
-<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/f477a8cff7b8bcc8121930b7d949824970a7d618/src/GenLinearAlgebra.jl#L589-L605' class='documenter-source'>source</a><br>
+<a target='_blank' href='https://github.com/jmichel7/GenLinearAlgebra.jl/blob/e64cc5b173023de766717d80547ab74ebcb21cef/src/GenLinearAlgebra.jl#L589-L605' class='documenter-source'>source</a><br>
 
