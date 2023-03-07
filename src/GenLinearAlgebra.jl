@@ -92,12 +92,12 @@ julia> rowspace(m)
  0//1  1//1
 ```
 """
-function rowspace(m::AbstractMatrix;dup=true)
-  if dup m=copy(m) end
+function rowspace(m::AbstractMatrix)
+  m*=1//1  # makes a copy and ensures Integer matrices become Rational
+  # no effect on float matrices
   m,inds=echelon!(m)
   @view m[1:length(inds),:]
 end
-rowspace(m::AbstractMatrix{<:Integer})=rowspace(m*1//1;dup=false)
 
 """
 `independent_rows(m::AbstractMatrix)`
@@ -118,12 +118,11 @@ julia> independent_rows(m)
  3
 ```
 """
-function independent_rows(m::AbstractMatrix;dup=true)
-  if dup m=copy(m) end
+function independent_rows(m::AbstractMatrix)
+  m*=1//1  # makes a copy and ensures Integer matrices become Rational
+  # no effect on float matrices
   last(echelon!(m))
 end
-independent_rows(m::AbstractMatrix{<:Integer})=
-    independent_rows(m*1//1;dup=false)
 
 """
 `GenLinearAlgebra.rank(m::AbstractMatrix)`
@@ -150,7 +149,9 @@ computes the right nullspace of `m` in a type-preserving way.
 Not exported to avoid conflict with LinearAlgebra
 """
 function nullspace(m::AbstractMatrix)
-  m,_=echelon!(copy(m))
+  # *1//1 makes a copy and ensures Integer matrices become Rational
+  # no effect on float matrices
+  m,_=echelon!(m*1//1)
   n=size(m)[2]
   z=Int[]
   j=0
@@ -171,8 +172,6 @@ function nullspace(m::AbstractMatrix)
   for i in nn zz[i,i]=-one(eltype(m)) end
   zz[:,nn]
 end
-
-nullspace(m::AbstractMatrix{<:Integer})=nullspace(m//1)
 
 """
 `lnullspace(m::AbstractMatrix)`
@@ -459,7 +458,7 @@ ratio `v/w`, `nothing` if `v` is not a multiple of `w`.
 function ratio(v::AbstractVector, w::AbstractVector)
   i=findfirst(x->!iszero(x),w)
   if i===nothing return nothing end
-  r=v[i]//w[i]
+  r=(v[i]*1//1)/(w[i]*1//1)
   if v==r.*w return r end
 end
 
@@ -493,9 +492,9 @@ julia> solutionmat(m,[10, 20, -10])
 ```
 """
 function solutionmat(m::AbstractMatrix,v::AbstractVector)
-  m=transpose(m).*1//1
-  if length(v)!=size(m,1) error("dimension mismatch") end
-  v=v.*1//1
+  if length(v)!=size(m,2) error("dimension mismatch") end
+  m=transpose(m).*one(eltype(v))//1
+  v=v.*one(eltype(m))//1
   r=0
   c=1
   while c<=size(m,2) && r<size(m,1)
