@@ -1,7 +1,7 @@
 name = "GenLinearAlgebra"
 uuid = "2304d612-645f-44c0-913c-a25a709b015d"
 authors = ["Jean Michel <jean.michel@imj-prg.fr>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [compat]
 julia = "1"
