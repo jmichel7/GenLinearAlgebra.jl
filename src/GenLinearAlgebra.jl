@@ -493,35 +493,37 @@ julia> solutionmat(m,[10, 20, -10])
 """
 function solutionmat(m::AbstractMatrix,v::AbstractVector)
   if length(v)!=size(m,2) error("dimension mismatch") end
-  m=transpose(m).*one(eltype(v))//1
+  m=m.*one(eltype(v))//1
   v=v.*one(eltype(m))//1
   r=0
   c=1
-  while c<=size(m,2) && r<size(m,1)
-    s=findfirst(!iszero,m[r+1:end,c])
+  while c<=size(m,1) && r<size(m,2)
+    s=findfirst(!iszero,@view m[c,r+1:end])
     if s!==nothing
       s+=r
       r+=1
-      piv=inv(m[s,c])
-      m[s,:],m[r,:]=m[r,:],m[s,:].*piv
+      piv=inv(m[c,s])
+      for i in axes(m,1)
+        m[i,s],m[i,r]=m[i,r],m[i,s]*piv
+      end
       v[s],v[r]=v[r],v[s]*piv
-      for s in 1:size(m,1)
-        if s!=r && !iszero(m[s,c])
-          v[s]-=m[s,c]*v[r]
-  @views  m[s,:].-=m[s,c]*m[r,:]
+      for s in 1:size(m,2)
+        if s!=r && !iszero(m[c,s])
+          v[s]-=m[c,s]*v[r]
+  @views  m[:,s].-=m[c,s]*m[:,r]
         end
       end
     end
     c+=1
   end
-  if any(!iszero,v[r+1:end]) return nothing end
+  if any(!iszero,@view v[r+1:end]) return nothing end
   h=eltype(m)[]
-  s=size(m,2)
+  s=size(m,1)
   z=zero(eltype(m))
   r=1
   c=1
-  while c<=s && r<=size(m,1)
-    while c<=s && iszero(m[r,c])
+  while c<=s && r<=size(m,2)
+    while c<=s && iszero(m[c,r])
       c+=1
       push!(h, z)
     end
