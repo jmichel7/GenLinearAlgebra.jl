@@ -145,7 +145,8 @@ rank(m::AbstractMatrix)=length(independent_rows(m))
 """
 `GenLinearAlgebra.nullspace(m::AbstractMatrix)`
 
-computes the right nullspace of `m` in a type-preserving way.
+computes  the right nullspace of `m` in a type-preserving way, that is that
+is the colspace of the vectors `v` such that `iszero(m*v)`.
 Not exported to avoid conflict with LinearAlgebra
 """
 function nullspace(m::AbstractMatrix)
@@ -176,7 +177,8 @@ end
 """
 `lnullspace(m::AbstractMatrix)`
 
-The left nullspace of `m`
+The left nullspace of `m`, that is the rowspace of the vectors `v` such
+that `iszero(permutedims(v)*m)`.
 """
 lnullspace(m::AbstractMatrix)=transpose(nullspace(transpose(m)))
 
@@ -465,8 +467,9 @@ end
 """
 `solutionmat(mat,v)`
 
-returns  one solution of the  equation `transpose(mat)*x=v` or `nothing` if
-no  such  solution  exists.  Similar  to  `transpose(mat)\\v` when `mat` is
+returns  one solution  `x` of  the equation  `transpose(mat)*x=v` (that is,
+expresses  `v` as a linear combination of  the rows of `mat`), or `nothing`
+if  no such solution  exists. Similar to  `transpose(mat)\\v` when `mat` is
 invertible.
 
 ```julia-repl
