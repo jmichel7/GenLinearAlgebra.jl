@@ -612,7 +612,7 @@ function traces_words_mats(mats,words)
   dens=map(x->1,mats)
   if all(m->all(x->x isa Rational,m),mats)
     dens=map(m->lcm(denominator.(m)),mats)
-    mats=map((m,d)->Int.(m.*d),mats,dens)
+    mats=map((m,d)->numerator.(m.*d),mats,dens)
   end
   words=convert.(Vector{Int},words)
   trace(w)=all(isone,@view dens[w]) ? tr(prods[w]) : tr(prods[w])//prod(@view dens[w])
