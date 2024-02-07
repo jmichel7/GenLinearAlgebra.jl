@@ -14,7 +14,7 @@ For more information, look at the helpstrings of
 `echelon!, rowspace, independent_rows, in_rowspace, intersect_rowspace,
  lnullspace, GenLinearAlgebra.nullspace, GenLinearAlgebra.rank, solutionmat, 
  charpoly, comatrix, permanent, symmetric_power, exterior_power, ratio, 
- diagconj_elt, transporter, bigcell_decomposition, traces_words_mats`.
+ diagconj_elt, transporter, bigcell_decomposition, traces_words_mats, all_ge_1`.
 """
 module GenLinearAlgebra
 using Combinat: combinations, multisets, tally
@@ -22,7 +22,8 @@ using LinearAlgebra: tr, exactdiv, det_bareiss
 export echelon!, exterior_power, comatrix, bigcell_decomposition, 
   ratio, charpoly, solutionmat, transporter, 
   permanent, symmetric_power, diagconj_elt, lnullspace,
-  intersect_rowspace, in_rowspace, rowspace, independent_rows, traces_words_mats
+  intersect_rowspace, in_rowspace, rowspace, independent_rows, 
+  traces_words_mats, all_ge_1
 
 """
 `echelon!(m::AbstractMatrix)`
@@ -37,13 +38,13 @@ is also the only non-zero in its column. This function works in any field.
 ```julia-repl
 julia> m=[0 0 0 1; 1 1 0 1; 0 1 0 1; 1 0 0 0]//1
 4×4 Matrix{Rational{Int64}}:
- 0//1  0//1  0//1  1//1
- 1//1  1//1  0//1  1//1
- 0//1  1//1  0//1  1//1
- 1//1  0//1  0//1  0//1
+ 0  0  0  1
+ 1  1  0  1
+ 0  1  0  1
+ 1  0  0  0
 
 julia> echelon!(m)
-(Rational{Int64}[1//1 0//1 0//1 0//1; 0//1 1//1 0//1 0//1; 0//1 0//1 0//1 1//1; 0//1 0//1 0//1 0//1], [2, 3, 1])
+(Rational{Int64}[1 0 0 0; 0 1 0 0; 0 0 0 1; 0 0 0 0], [2, 3, 1])
 ```
 """
 function echelon!(m::AbstractMatrix)
@@ -88,8 +89,8 @@ julia> m=[1 2;2 4;5 6]
 
 julia> rowspace(m)
 2×2 view(::Matrix{Rational{Int64}}, 1:2, :) with eltype Rational{Int64}:
- 1//1  0//1
- 0//1  1//1
+ 1  0
+ 0  1
 ```
 """
 function rowspace(m::AbstractMatrix)
@@ -383,11 +384,11 @@ for example   it is  not  multilinear or  alternating.  It   has  however
 important combinatorical properties.
 
 ```julia-repl
-julia> permanent([0 1 1 1;1 0 1 1;1 1 0 1;1 1 1 0])
-9 # inefficient way to compute the number of derangements of 1:4
+julia> permanent([0 1 1 1;1 0 1 1;1 1 0 1;1 1 1 0]) # inefficient way to compute the number of derangements of 1:4
+9
 
-julia> permanent([1 1 0 1 0 0 0; 0 1 1 0 1 0 0;0 0 1 1 0 1 0; 0 0 0 1 1 0 1;1 0 0 0 1 1 0;0 1 0 0 0 1 1;1 0 1 0 0 0 1])
-24 # 24 permutations fit the projective plane of order 2 
+julia> permanent([1 1 0 1 0 0 0; 0 1 1 0 1 0 0;0 0 1 1 0 1 0; 0 0 0 1 1 0 1;1 0 0 0 1 1 0;0 1 0 0 0 1 1;1 0 1 0 0 0 1]) # 24 permutations fit the projective plane of order 2 
+24 
 ```
 """
 function permanent(m)
@@ -481,15 +482,15 @@ julia> m=[2 -4 1;0 0 -4;1 -2 -1]
 
 julia> x=solutionmat(m,[10,-20, -10])
 3-element Vector{Rational{Int64}}:
-  5//1
+   5
  15//4
-  0//1
+   0
 
 julia> m'*x
 3-element Vector{Rational{Int64}}:
-  10//1
- -20//1
- -10//1
+  10
+ -20
+ -10
 
 julia> solutionmat(m,[10, 20, -10])
 ```
@@ -566,8 +567,8 @@ julia> M=[1 2;2 1];N=[1 4;1 1]
 
 julia> diagconj_elt(M,N)
 2-element Vector{Rational{Int64}}:
- 1//1
- 2//1
+ 1
+ 2
 ```
 """
 function diagconj_elt(M, N)
@@ -600,7 +601,7 @@ is evaluated only once.
 ```julia-repl
 julia> R=[[-1 -1 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1], [1 0 0 0; -1 -1 -1 0; 0 0 1 0; 0 0 0 1], [1 0 0 0; 0 1 0 0; 0 -2 -1 -1; 0 0 0 1], [1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 -1 -1]]; # 17th representation of F4
 
-julia>words=[[], [1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4], [2,3,2,3], [2,1], [1,2,3,4,2,3,2,3,4,3], [1,2,3,4,1,2,3,4,1,2,3,4], [4,3], [1,2,1,3,2,3,1,2,3,4], [1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4], [1,2,3,4,1,2,3,4], [1,2,3,4], [1], [2,3,2,3,4,3,2,3,4], [1,4,3], [4,3,2], [2,3,2,1,3], [3], [1,2,1,3,2,1,3,2,3], [2,1,4], [3,2,1], [2,4,3,2,3], [1,3], [3,2], [1,2,3,4,1,2,3,4,1,2,3,4,2,3], [1,2,3,4,2,3]];
+julia> words=[[], [1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4], [2,3,2,3], [2,1], [1,2,3,4,2,3,2,3,4,3], [1,2,3,4,1,2,3,4,1,2,3,4], [4,3], [1,2,1,3,2,3,1,2,3,4], [1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4], [1,2,3,4,1,2,3,4], [1,2,3,4], [1], [2,3,2,3,4,3,2,3,4], [1,4,3], [4,3,2], [2,3,2,1,3], [3], [1,2,1,3,2,1,3,2,3], [2,1,4], [3,2,1], [2,4,3,2,3], [1,3], [3,2], [1,2,3,4,1,2,3,4,1,2,3,4,2,3], [1,2,3,4,2,3]];
 
 julia> [traces_words_mats(R,words)] # 17th character of F4
 1-element Vector{Vector{Int64}}:
@@ -632,4 +633,53 @@ function traces_words_mats(mats,words)
     trace(w)
   end
 end
+
+"""
+`all_ge_1(M::Matrix;approx=x->x)`
+
+This  function determines if a list of real linear forms represented by the
+rows  of a  matrix `M`  can be  made simultaneously  `≥1`. The  result is a
+vector  `v` such  that `all(≥(1),M*v)`,  or `nothing`  if there  is no such
+vector.
+
+`approx(x)`  is a  function giving  an approximate  real value for `x`. For
+instance,  setting `approx=Float64` enables to  use this function with real
+`Cyc` numbers.
+```julia-repl
+julia> all_ge_1([1 1 -1;1 -1 1;-1 1 1])
+3-element Vector{Float64}:
+ 1.0
+ 1.0
+ 1.0
+```
+"""
+function all_ge_1(M::Matrix;approx=x->x)
+  M0=M
+  S=independent_rows(M)
+  if length(S)<size(M,2) return nothing end
+  T=inv(M[S,:])
+  M*=T
+  M=hcat(fill(-1,size(M,1)),M)
+  v=(1:size(S,1)+1)
+  id=v.==permutedims(v)
+  M=vcat(M,id[2:end,:])
+  S=collect(size(M,1)-size(S,1)+1:size(M,1))
+  M=permutedims(M)
+  while true
+    p=findfirst(x->approx(x)<0,M[1,:])
+    if p===nothing
+      S=T*M[1,end-length(S)+1:end]
+      if !all(x->approx(x)>=1,M0*S) error() end
+      return S
+    end
+    q=filter(i->approx(M[i,p])>0,axes(M,1))
+    if isempty(q) return nothing end
+    i=q[argmin(eachrow(M[q,S])./M[q,p])]
+    M[i,:]./=M[i,p]
+    for j in axes(M,1) if j!=i M[j,:]-=M[i,:]*M[j,p] end end
+    S[i-1]=p
+  end
+  M
+end
+
 end
