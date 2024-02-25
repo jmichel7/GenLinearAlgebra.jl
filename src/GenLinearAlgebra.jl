@@ -68,7 +68,7 @@ function echelon!(m::AbstractMatrix)
     end
 #   println(m)
   end
-  m,inds[1:rk]
+  m,@view inds[1:rk]
 end
 
 """
@@ -114,7 +114,7 @@ julia> m=[1 2;2 4;5 6]
  5  6
 
 julia> independent_rows(m)
-2-element Vector{Int64}:
+2-element view(::Vector{Int64}, 1:2) with eltype Int64:
  1
  3
 ```
@@ -497,8 +497,8 @@ julia> solutionmat(m,[10, 20, -10])
 """
 function solutionmat(m::AbstractMatrix,v::AbstractVector)
   if length(v)!=size(m,2) error("dimension mismatch") end
-  m=m.*one(eltype(v))//1
-  v=v.*one(eltype(m))//1
+  m=m.*one(eltype(v))*1//1
+  v=v.*one(eltype(m))*1//1
   r=0
   c=1
   while c<=size(m,1) && r<size(m,2)
@@ -512,9 +512,10 @@ function solutionmat(m::AbstractMatrix,v::AbstractVector)
       end
       v[s],v[r]=v[r],v[s]*piv
       for s in 1:size(m,2)
-        if s!=r && !iszero(m[c,s])
-          v[s]-=m[c,s]*v[r]
-  @views  m[:,s].-=m[c,s]*m[:,r]
+        a=m[c,s]
+        if s!=r && !iszero(a)
+          v[s]-=a*v[r]
+          for i in axes(m,1) m[i,s]-=a*m[i,r] end
         end
       end
     end

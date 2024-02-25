@@ -22,7 +22,7 @@ end
 @test mytest("GenLinearAlgebra.jl","m=[1 2;2 4;5 6]","3×2 Matrix{Int64}:\n 1  2\n 2  4\n 5  6")
 @test mytest("GenLinearAlgebra.jl","rowspace(m)","2×2 view(::Matrix{Rational{Int64}}, 1:2, :) with eltype Rational{Int64}:\n 1  0\n 0  1")
 @test mytest("GenLinearAlgebra.jl","m=[1 2;2 4;5 6]","3×2 Matrix{Int64}:\n 1  2\n 2  4\n 5  6")
-@test mytest("GenLinearAlgebra.jl","independent_rows(m)","2-element Vector{Int64}:\n 1\n 3")
+@test mytest("GenLinearAlgebra.jl","independent_rows(m)","2-element view(::Vector{Int64}, 1:2) with eltype Int64:\n 1\n 3")
 @test mytest("GenLinearAlgebra.jl","M=[1 2 3 4;2 3 4 1;3 4 1 2;4 1 2 3]","4×4 Matrix{Int64}:\n 1  2  3  4\n 2  3  4  1\n 3  4  1  2\n 4  1  2  3")
 @test mytest("GenLinearAlgebra.jl","exterior_power(M,2)","6×6 Matrix{Int64}:\n  -1   -2   -7   -1  -10  -13\n  -2   -8  -10  -10  -12    2\n  -7  -10  -13    1    2    1\n  -1  -10    1  -13    2    7\n -10  -12    2    2    8   10\n -13    2    1    7   10   -1")
 @test mytest("GenLinearAlgebra.jl","permanent([0 1 1 1;1 0 1 1;1 1 0 1;1 1 1 0])","9")

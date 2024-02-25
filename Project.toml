@@ -1,14 +1,15 @@
 name = "GenLinearAlgebra"
 uuid = "2304d612-645f-44c0-913c-a25a709b015d"
 authors = ["Jean Michel <jean.michel@imj-prg.fr>"]
-version = "0.1.1"
+version = "0.1.2"
 
 [deps]
 Combinat = "a6b051d1-fc4b-4ede-b53e-347fa9fb9a74"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [compat]
-Combinat = "0.0.5, 0.0.6, 0.1"
+Combinat = "0.1"
+LinearAlgebra = "1"
 julia = "1"
 
 [extras]
