@@ -454,11 +454,11 @@ end
 transporter(l1::Matrix, l2::Matrix)=transporter([l1],[l2])
 
 """
-`ratio(v::abstractVector,w::abstractVector)` 
+`ratio(v::abstractArray,w::abstractArray)` 
 
-ratio `v/w`, `nothing` if `v` is not a multiple of `w`.
+ratio `r` such that `v=r.*w`, `nothing` if `v` is not a multiple of `w`.
 """
-function ratio(v::AbstractVector, w::AbstractVector)
+function ratio(v::AbstractArray, w::AbstractArray)
   i=findfirst(x->!iszero(x),w)
   if i===nothing return nothing end
   r=(v[i]*1//1)/(w[i]*1//1)
