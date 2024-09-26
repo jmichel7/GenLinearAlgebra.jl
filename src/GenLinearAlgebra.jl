@@ -36,15 +36,15 @@ The  echelon form transforms the  rows of m into  a particular basis of the
 rowspace. The first non-zero element of each line is 1, and such an element
 is also the only non-zero in its column. This function works in any field.
 ```julia-repl
-julia> m=[0 0 0 1; 1 1 0 1; 0 1 0 1; 1 0 0 0]//1
+julia> m=[1 1 1 0;0 1 1 0;1 0 0 0;1 1 1 1]//1
 4×4 Matrix{Rational{Int64}}:
- 0  0  0  1
- 1  1  0  1
- 0  1  0  1
+ 1  1  1  0
+ 0  1  1  0
  1  0  0  0
+ 1  1  1  1
 
 julia> echelon!(m)
-(Rational{Int64}[1 0 0 0; 0 1 0 0; 0 0 0 1; 0 0 0 0], [2, 3, 1])
+(Rational{Int64}[1 0 0 0; 0 1 1 0; 0 0 0 1; 0 0 0 0], [1, 2, 4])
 ```
 """
 function echelon!(m::AbstractMatrix)
@@ -66,7 +66,6 @@ function echelon!(m::AbstractMatrix)
         @views m[j,:].-=m[j,k].*m[rk,:]
       end
     end
-#   println(m)
   end
   m,@view inds[1:rk]
 end
@@ -94,9 +93,9 @@ julia> rowspace(m)
 ```
 """
 function rowspace(m::AbstractMatrix)
-  m*=1//1  # makes a copy and ensures Integer matrices become Rational
+  # *1//1 makes a copy and ensures Integer matrices become Rational
   # no effect on float matrices
-  m,inds=echelon!(m)
+  m,inds=echelon!(m*1//1)
   @view m[1:length(inds),:]
 end
 
@@ -119,11 +118,9 @@ julia> independent_rows(m)
  3
 ```
 """
-function independent_rows(m::AbstractMatrix)
-  m*=1//1  # makes a copy and ensures Integer matrices become Rational
+independent_rows(m::AbstractMatrix)=last(echelon!(m*1//1))
+  # *1//1 makes a copy and ensures Integer matrices become Rational
   # no effect on float matrices
-  last(echelon!(m))
-end
 
 """
 `GenLinearAlgebra.rank(m::AbstractMatrix)`
@@ -146,40 +143,33 @@ rank(m::AbstractMatrix)=length(independent_rows(m))
 """
 `GenLinearAlgebra.nullspace(m::AbstractMatrix)`
 
-computes  the right nullspace of `m` in a type-preserving way, that is that
-is the colspace of the vectors `v` such that `iszero(m*v)`.
-Not exported to avoid conflict with LinearAlgebra
+computes the right nullspace of `m`, a matrix whose columns form a basis of
+the  space  of  the  vectors  `v`  such  that  `iszero(m*v)`.  Contrary  to
+`LinearALgebra.nullspace`  this  function  is  type-preserving, that is the
+nullspace of a matrix of rationals has the same type (also the nullspace of
+an  integer matrix  is a  rational matrix).  Not exported to avoid conflict
+with `LinearAlgebra`.
 """
 function nullspace(m::AbstractMatrix)
-  # *1//1 makes a copy and ensures Integer matrices become Rational
-  # no effect on float matrices
-  m,_=echelon!(m*1//1)
-  n=size(m)[2]
-  z=Int[]
-  j=0
-  lim=size(m,1)
+  if isempty(m) c=zero(eltype(m)) else c=m[1,1]*1//1 end
+  # if m nonempty does not need zero and one of eltype(m) but only of c
+  m=rowspace(m)
+  z=fill(zero(c),size(m,2),size(m,2))
+  j=1
   for i in axes(m,1)
-    f=findfirst(!iszero,m[i,j+1:end])
-    if f===nothing
-      lim=i-1
-      break
-    end
-    j+=f
-    push!(z,j)
+    while iszero(m[i,j]) j+=1 end
+    for k in j:size(m,2) z[j,k]=-m[i,k] end
   end
-# println("z=$z lim=$lim")
-  zz=zeros(eltype(m),n,n)
-  zz[z,:]=m[1:lim,:]
-  nn=filter(k->iszero(zz[k,k]),1:n)
-  for i in nn zz[i,i]=-one(eltype(m)) end
-  zz[:,nn]
+  n=filter(i->iszero(z[i,i]),axes(m,2))
+  for i in n z[i,i]=one(c) end
+  z[:,n]
 end
 
 """
 `lnullspace(m::AbstractMatrix)`
 
-The left nullspace of `m`, that is the rowspace of the vectors `v` such
-that `iszero(permutedims(v)*m)`.
+The left nullspace of `m`, that is a matrix whose rows form a basis
+of the space of vectors `v` such that `iszero(permutedims(v)*m)`.
 """
 lnullspace(m::AbstractMatrix)=transpose(nullspace(transpose(m)))
 
@@ -199,7 +189,7 @@ end
 `in_rowspace(v::AbstractVector,m::AbstractMatrix)` 
 
 whether `v` is in the rowspace `m`. The matrix `m` should be an echelonized
-matrix like what is returned by function `rowspace`.
+matrix like what is returned by the function `rowspace`.
 """
 function in_rowspace(v::AbstractVector,m::AbstractMatrix)
   res=zero(@view m[1,:])
