@@ -449,9 +449,9 @@ transporter(l1::Matrix, l2::Matrix)=transporter([l1],[l2])
 ratio `r` such that `v=r.*w`, `nothing` if `v` is not a multiple of `w`.
 """
 function ratio(v::AbstractArray, w::AbstractArray)
-  i=findfirst(x->!iszero(x),w)
-  if i===nothing return nothing end
-  r=(v[i]*1//1)/(w[i]*1//1)
+  i=findfirst(!iszero,w)
+  if i===nothing return iszero(v) ? 0//1 : nothing end
+  r=(v[i]*1//1)/w[i]
   if v==r.*w return r end
 end
 
@@ -547,7 +547,7 @@ solutionmat(m,n::AbstractMatrix)=permutedims(reduce(hcat,solutionmat.(Ref(m),eac
 `diagconj_elt(M,N)`
 
 `M` and `N` must be square matrices of the same size. This function returns
-a  list `d`  such that  `N==inv(Diagonal(d))*M*Diagonal(d)` if  such a list
+a vector `d` such that `N==inv(Diagonal(d))*M*Diagonal(d)` if such a vector
 exists, and `nothing` otherwise.
 
 ```julia_repl
@@ -562,8 +562,12 @@ julia> diagconj_elt(M,N)
  2
 ```
 """
-function diagconj_elt(M, N)
-  d=fill(zero(eltype(M))*1//1,size(M,1));d[1]=1
+function diagconj_elt(M::AbstractMatrix, N::AbstractMatrix)
+  if !(size(M,1)==size(M,2)==size(N,1)==size(N,2))
+    error("matrices must be square and of the same size")
+  end
+  if !all(i->M[i,i]==N[i,i],1:size(M,1)) return nothing end
+  d=fill(zero(eltype(M))*zero(eltype(N))*1//1,size(M,1));d[1]=1
   n=size(M,1)
   for i in 1:n, j in i+1:n
     if M[i,j]!=0
@@ -576,7 +580,7 @@ function diagconj_elt(M, N)
     end
   end
   if 0 in d return nothing end
-  if !all([N[i,j]==M[i,j]*d[j]//d[i] for i in 1:n for j in 1:n])
+  if !all([d[i]*N[i,j]==M[i,j]*d[j] for i in 1:n for j in 1:n])
     return nothing end
   d
 end
