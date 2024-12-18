@@ -451,7 +451,7 @@ ratio `r` such that `v=r.*w`, `nothing` if `v` is not a multiple of `w`.
 function ratio(v::AbstractArray, w::AbstractArray)
   i=findfirst(!iszero,w)
   if i===nothing return iszero(v) ? 0//1 : nothing end
-  r=(v[i]*1//1)/w[i]
+  r=(v[i]*1//1)/(w[i]*1//1)
   if v==r.*w return r end
 end
 
