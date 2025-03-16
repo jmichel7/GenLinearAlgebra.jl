@@ -604,14 +604,14 @@ julia> [traces_words_mats(R,words)] # 17th character of F4
 ```
 """
 function traces_words_mats(mats,words)
-# mats=improve_type(mats)
   dens=map(x->1,mats)
   if all(m->all(x->x isa Rational,m),mats)
     dens=map(m->lcm(denominator.(m)),mats)
     mats=map((m,d)->numerator.(m.*d),mats,dens)
   end
   words=convert.(Vector{Int},words)
-  trace(w)=all(isone,@view dens[w]) ? tr(prods[w]) : tr(prods[w])//prod(@view dens[w])
+  trace(w)=all(isone,@view dens[w]) ? tr(prods[w]) : 
+                                      tr(prods[w])//prod(@view dens[w])
   prods=Dict{Vector{Int},eltype(mats)}(Int[]=>mats[1]^0)
   for i in eachindex(mats) prods[[i]]=mats[i] end
   res=map(words)do w
