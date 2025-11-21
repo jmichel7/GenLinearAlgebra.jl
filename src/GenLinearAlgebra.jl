@@ -1,40 +1,60 @@
 """
 GenLinearAlgebra: linear algebra over arbitrary fields and rings
 
-The  linear  algebra  package  in  Julia  is  not  suitable  for  a general
+The  `LinearAlgebra`  package  in  Julia  is  not  suitable  as  a  general
 mathematics  package: it assumes  the field is  the Real or Complex numbers
 and  uses floating  point to  do approximate  computations. For example the
 invertible  rational matrix `[1//(n+m) for  n in 1:11, m  in 1:11]` has for
 `LinearAlgebra` a `rank` of 10 and a `Float64` nullspace of dimension 1.
 
 Here we are interested in functions which work over any field (or sometimes
-any ring) and assume exact computations.
+any ring) and do exact computations.
 
-For more information, look at the helpstrings of
-`echelon!, rowspace, independent_rows, in_rowspace, intersect_rowspace,
- lnullspace, GenLinearAlgebra.nullspace, GenLinearAlgebra.rank, solutionmat, 
- charpoly, comatrix, permanent, symmetric_power, exterior_power, ratio, 
- diagconj_elt, transporter, bigcell_decomposition, traces_words_mats, all_ge_1`.
+For more information, look at
+[`echelon!`](@ref),
+[`rowspace`](@ref),
+[`independent_rows`](@ref),
+[`in_rowspace`](@ref),
+[`intersect_rowspace`](@ref),
+[`lnullspace`](@ref),
+[`GenLinearAlgebra.nullspace`](@ref),
+[`GenLinearAlgebra.rank`](@ref),
+[`solutionmat`](@ref),
+[`charpoly`](@ref),
+[`comatrix`](@ref),
+[`permanent`](@ref),
+[`symmetric_power`](@ref),
+[`exterior_power`](@ref),
+[`ratio`](@ref),
+[`diagconj_elt`](@ref),
+[`transporter`](@ref),
+[`bigcell_decomposition`](@ref),
+[`traces_words_mats`](@ref),
+[`all_ge_1`](@ref)
 """
 module GenLinearAlgebra
 using Combinat: combinations, multisets, tally
 using LinearAlgebra: tr, exactdiv, det_bareiss
-export echelon!, exterior_power, comatrix, bigcell_decomposition, 
-  ratio, charpoly, solutionmat, transporter, 
+export echelon!, exterior_power, comatrix, bigcell_decomposition,
+  ratio, charpoly, solutionmat, transporter,
   permanent, symmetric_power, diagconj_elt, lnullspace,
-  intersect_rowspace, in_rowspace, rowspace, independent_rows, 
+  intersect_rowspace, in_rowspace, rowspace, independent_rows,
   traces_words_mats, all_ge_1
 
 """
 `echelon!(m::AbstractMatrix)`
 
-puts  `m` in echelon  form in-place and  returns: 
+puts  `m` in echelon  form in-place and  returns:
 
 (`m`, indices of linearly independent  rows of original `m`)
 
 The  echelon form transforms the  rows of m into  a particular basis of the
 rowspace. The first non-zero element of each line is 1, and such an element
-is also the only non-zero in its column. This function works in any field.
+is  also the only non-zero in its  column.
+
+This  function  works  over  any  field  (it  is just assumed that non-zero
+entries  of `m` are  invertible, and have  `iszero`and `isone` methods, but
+*it is not assumed* that their type has a `zero` or `one` method).
 ```julia-repl
 julia> m=[1 1 1 0;0 1 1 0;1 0 0 0;1 1 1 1]//1
 4×4 Matrix{Rational{Int64}}:
@@ -62,7 +82,7 @@ function echelon!(m::AbstractMatrix)
       @views m[rk,:].*=inv(m[rk,k])
     end
     for j in axes(m,1)
-      if rk!=j && !iszero(m[j,k]) 
+      if rk!=j && !iszero(m[j,k])
         @views m[j,:].-=m[j,k].*m[rk,:]
       end
     end
@@ -76,9 +96,10 @@ end
 returns a canonical form of the rowspace of `m` (the vector space generated
 by  the rows of `m`),  the echelon form. This  is a particular basis of the
 rowspace  of `m`: the first non-zero element of each line is 1, and such an
-element  is also the only non-zero  element in its column. Integer matrices
-are converted to `Rational` before applying this function.
+element  is also the only non-zero  element in its column.
 
+Matrices are multiplied by `1//1` before applying this function, which make
+it work over some rings: for instance, this converts integers to rationals.
 ```julia-repl
 julia> m=[1 2;2 4;5 6]
 3×2 Matrix{Int64}:
@@ -90,6 +111,11 @@ julia> rowspace(m)
 2×2 view(::Matrix{Rational{Int64}}, 1:2, :) with eltype Rational{Int64}:
  1  0
  0  1
+
+julia> rowspace(m')
+2×3 view(::Matrix{Rational{Int64}}, 1:2, :) with eltype Rational{Int64}:
+ 1  2  0
+ 0  0  1
 ```
 """
 function rowspace(m::AbstractMatrix)
@@ -102,9 +128,8 @@ end
 """
 `independent_rows(m::AbstractMatrix)`
 
-returns  a vector of the  indices of a set  of independent rows of `m` (the
+returns   the  indices   of  a   set  of   independent  rows  of  `m`  (the
 lexicographically first such set).
-
 ```julia-repl
 julia> m=[1 2;2 4;5 6]
 3×2 Matrix{Int64}:
@@ -145,10 +170,28 @@ rank(m::AbstractMatrix)=length(independent_rows(m))
 
 computes the right nullspace of `m`, a matrix whose columns form a basis of
 the  space  of  the  vectors  `v`  such  that  `iszero(m*v)`.  Contrary  to
-`LinearALgebra.nullspace`  this  function  is  type-preserving, that is the
-nullspace of a matrix of rationals has the same type (also the nullspace of
-an  integer matrix  is a  rational matrix).  Not exported to avoid conflict
-with `LinearAlgebra`.
+`LinearALgebra.nullspace`   this  function  is   type-preserving  when  the
+elements  of `m` belong to a field,  for instance the nullspace of a matrix
+of  rationals has the same type; also the nullspace of an integer matrix is
+a rational matrix. Not exported to avoid conflict with `LinearAlgebra`.
+```julia-rep1
+julia> m=[1 2 5;2 4 6]
+2×3 Matrix{Int64}:
+ 1  2  5
+ 2  4  6
+
+julia> GenLinearAlgebra.nullspace(m)
+3×1 Matrix{Rational{Int64}}:
+ -2
+  1
+  0
+
+julia> LinearAlgebra.nullspace(m)
+3×1 Matrix{Float64}:
+ -0.8944271909999162
+  0.4472135954999574
+  3.8000065300241145e-16
+```
 """
 function nullspace(m::AbstractMatrix)
   if isempty(m) c=zero(eltype(m)) else c=m[1,1]*1//1 end
@@ -174,7 +217,7 @@ of the space of vectors `v` such that `iszero(permutedims(v)*m)`.
 lnullspace(m::AbstractMatrix)=transpose(nullspace(transpose(m)))
 
 """
-`intersect_rowspace(m::AbstractMatrix,n::AbstractMatrix)` 
+`intersect_rowspace(m::AbstractMatrix,n::AbstractMatrix)`
 
 The intersection of the rowspaces of `m` and `n`.
 """
@@ -186,10 +229,10 @@ function intersect_rowspace(m::AbstractMatrix,n::AbstractMatrix)
 end
 
 """
-`in_rowspace(v::AbstractVector,m::AbstractMatrix)` 
+`in_rowspace(v::AbstractVector,m::AbstractMatrix)`
 
-whether `v` is in the rowspace `m`. The matrix `m` should be an echelonized
-matrix like what is returned by the function `rowspace`.
+whether  `v`  is  in  the  rowspace  of  `m`.  The  matrix `m` should be an
+echelonized matrix like what is returned by the function `rowspace`.
 """
 function in_rowspace(v::AbstractVector,m::AbstractMatrix)
   res=zero(@view m[1,:])
@@ -217,7 +260,7 @@ function charpolyandcomatrix(m)
 end
 
 """
-`charpoly(M::Matrix)` 
+`charpoly(M::Matrix)`
 
 The characteristic polynomial of `M` (as a `Vector` of coefficients).
 This function works over any ring.
@@ -225,7 +268,7 @@ This function works over any ring.
 charpoly(m)=first(charpolyandcomatrix(m))
 
 """
-`comatrix(M::Matrix)` 
+`comatrix(M::Matrix)`
 
 is defined by `comatrix(M)*M=det(M)*one(M)`.
 This function works over any ring.
@@ -251,7 +294,7 @@ routine  is used  in the  Lusztig-Shoji algorithm  for computing  the Green
 functions  and the example  below is extracted  from the computation of the
 Green functions for `G₂`.
 
-```julia-repl
+```julia-rep1
 julia> using LaurentPolynomials
 
 julia> @Pol q
@@ -364,7 +407,7 @@ end
 """
 `permanent(m)`
 
-returns the *permanent* of the square matrix `m`, which is defined by 
+returns the *permanent* of the square matrix `m`, which is defined by
 ``\\sum_{p\\in\\frak S_n}\\prod_{i=1}^n m[i,p(i)]``.
 
 Note the similarity of the definition of  the permanent to the definition
@@ -377,8 +420,8 @@ important combinatorical properties.
 julia> permanent([0 1 1 1;1 0 1 1;1 1 0 1;1 1 1 0]) # inefficient way to compute the number of derangements of 1:4
 9
 
-julia> permanent([1 1 0 1 0 0 0; 0 1 1 0 1 0 0;0 0 1 1 0 1 0; 0 0 0 1 1 0 1;1 0 0 0 1 1 0;0 1 0 0 0 1 1;1 0 1 0 0 0 1]) # 24 permutations fit the projective plane of order 2 
-24 
+julia> permanent([1 1 0 1 0 0 0; 0 1 1 0 1 0 0;0 0 1 1 0 1 0; 0 0 0 1 1 0 1;1 0 0 0 1 1 0;0 1 0 0 0 1 1;1 0 1 0 0 0 1]) # 24 permutations fit the projective plane of order 2
+24
 ```
 """
 function permanent(m)
@@ -387,14 +430,14 @@ function permanent(m)
     if i==n+1 reduce(*,sum;init=1)
     else Permanent2(m,i+1,sum)-Permanent2(m,i+1,sum+m[i,:])
     end
-  end 
+  end
   (-1)^n*Permanent2(m,1,zeros(Int,n));
 end
 
 """
 `symmetric_power(m,n)`
 
-returns the `n`-th symmetric power of the square matrix `m`, in the basis 
+returns the `n`-th symmetric power of the square matrix `m`, in the basis
 naturally indexed by the `multisets` of `1:n`, where `n=size(m,1)`.
 
 ```julia-repl
@@ -444,7 +487,7 @@ end
 transporter(l1::Matrix, l2::Matrix)=transporter([l1],[l2])
 
 """
-`ratio(v::abstractArray,w::abstractArray)` 
+`ratio(v::abstractArray,w::abstractArray)`
 
 ratio `r` such that `v=r.*w`, `nothing` if `v` is not a multiple of `w`.
 """
@@ -538,7 +581,7 @@ end
 """
 `solutionmat(m,n::AbstractMatrix)`
 
-return a matrix `x` such that `x*m==n`. This is interesting when `m` 
+return a matrix `x` such that `x*m==n`. This is interesting when `m`
 is not invertible.
 """
 solutionmat(m,n::AbstractMatrix)=permutedims(reduce(hcat,solutionmat.(Ref(m),eachrow(n))))
@@ -574,7 +617,7 @@ function diagconj_elt(M::AbstractMatrix, N::AbstractMatrix)
       if N[i,j]==0 return nothing end
       if d[i]!=0
         c=d[i]*N[i,j]//M[i,j]
-        if d[j]!=0 if c!=d[j] return nothing end 
+        if d[j]!=0 if c!=d[j] return nothing end
         else d[j]=c end
       end
     end
@@ -610,7 +653,7 @@ function traces_words_mats(mats,words)
     mats=map((m,d)->numerator.(m.*d),mats,dens)
   end
   words=convert.(Vector{Int},words)
-  trace(w)=all(isone,@view dens[w]) ? tr(prods[w]) : 
+  trace(w)=all(isone,@view dens[w]) ? tr(prods[w]) :
                                       tr(prods[w])//prod(@view dens[w])
   prods=Dict{Vector{Int},eltype(mats)}(Int[]=>mats[1]^0)
   for i in eachindex(mats) prods[[i]]=mats[i] end

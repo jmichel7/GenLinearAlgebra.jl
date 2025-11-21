@@ -3,24 +3,21 @@ using Test, GenLinearAlgebra
 function mytest(file::String,cmd::String,man::String)
   println(file," ",cmd)
   exec=repr(MIME("text/plain"),eval(Meta.parse(cmd)),context=:limit=>true)
-  if endswith(cmd,";") exec="nothing" 
-  else exec=replace(exec,r"\s*$"m=>"")
-       exec=replace(exec,r"\s*$"s=>"")
-       exec=replace(exec,r"^\s*"=>"")
-  end
+  if endswith(cmd,";") return true end
+  exec=replace(exec,r"\s*$"m=>""); exec=replace(exec,r"\s*$"s=>"")
+  exec=replace(exec,r"^\s*"=>"")
   if exec==man return true end
-  i=1
-  while i<=lastindex(exec) && i<=lastindex(man) && exec[i]==man[i]
-    i=nextind(exec,i)
-  end
+  inds=collect(eachindex(exec))
+  i=inds[findfirst(i->i<=lastindex(man) && exec[i]!=man[i],inds)]
   print("exec=$(repr(exec[i:end]))\nmanl=$(repr(man[i:end]))\n")
-  return false
+  false
 end
 @testset "GenLinearAlgebra.jl" begin
-@test mytest("GenLinearAlgebra.jl","m=[0 0 0 1; 1 1 0 1; 0 1 0 1; 1 0 0 0]//1","4×4 Matrix{Rational{Int64}}:\n 0  0  0  1\n 1  1  0  1\n 0  1  0  1\n 1  0  0  0")
-@test mytest("GenLinearAlgebra.jl","echelon!(m)","(Rational{Int64}[1 0 0 0; 0 1 0 0; 0 0 0 1; 0 0 0 0], [2, 3, 1])")
+@test mytest("GenLinearAlgebra.jl","m=[1 1 1 0;0 1 1 0;1 0 0 0;1 1 1 1]//1","4×4 Matrix{Rational{Int64}}:\n 1  1  1  0\n 0  1  1  0\n 1  0  0  0\n 1  1  1  1")
+@test mytest("GenLinearAlgebra.jl","echelon!(m)","(Rational{Int64}[1 0 0 0; 0 1 1 0; 0 0 0 1; 0 0 0 0], [1, 2, 4])")
 @test mytest("GenLinearAlgebra.jl","m=[1 2;2 4;5 6]","3×2 Matrix{Int64}:\n 1  2\n 2  4\n 5  6")
 @test mytest("GenLinearAlgebra.jl","rowspace(m)","2×2 view(::Matrix{Rational{Int64}}, 1:2, :) with eltype Rational{Int64}:\n 1  0\n 0  1")
+@test mytest("GenLinearAlgebra.jl","rowspace(m')","2×3 view(::Matrix{Rational{Int64}}, 1:2, :) with eltype Rational{Int64}:\n 1  2  0\n 0  0  1")
 @test mytest("GenLinearAlgebra.jl","m=[1 2;2 4;5 6]","3×2 Matrix{Int64}:\n 1  2\n 2  4\n 5  6")
 @test mytest("GenLinearAlgebra.jl","independent_rows(m)","2-element view(::Vector{Int64}, 1:2) with eltype Int64:\n 1\n 3")
 @test mytest("GenLinearAlgebra.jl","M=[1 2 3 4;2 3 4 1;3 4 1 2;4 1 2 3]","4×4 Matrix{Int64}:\n 1  2  3  4\n 2  3  4  1\n 3  4  1  2\n 4  1  2  3")

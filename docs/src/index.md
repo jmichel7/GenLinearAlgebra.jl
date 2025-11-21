@@ -1,7 +1,10 @@
-# Linear algebra on any field/ring
-```@contents
-Depth=3
+```@meta
+CurrentModule = GenLinearAlgebra
 ```
+
+# GenLinearAlgebra
+
+Documentation for [GenLinearAlgebra](https://github.com/jmichel7/GenLinearAlgebra.jl).
 
 ```@docs
 GenLinearAlgebra
