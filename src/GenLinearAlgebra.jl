@@ -34,7 +34,7 @@ For more information, look at
 """
 module GenLinearAlgebra
 using Combinat: combinations, multisets, tally
-using LinearAlgebra: tr, exactdiv, det_bareiss
+using LinearAlgebra: det_bareiss, exactdiv, tr 
 export echelon!, exterior_power, comatrix, bigcell_decomposition,
   ratio, charpoly, solutionmat, transporter,
   permanent, symmetric_power, diagconj_elt, lnullspace,
@@ -424,14 +424,14 @@ julia> permanent([1 1 0 1 0 0 0; 0 1 1 0 1 0 0;0 0 1 1 0 1 0; 0 0 0 1 1 0 1;1 0 
 24
 ```
 """
-function permanent(m)
-  n=size(m,1)
-  function Permanent2(m,i,sum)
-    if i==n+1 reduce(*,sum;init=1)
-    else Permanent2(m,i+1,sum)-Permanent2(m,i+1,sum+m[i,:])
+function permanent(m::AbstractMatrix)
+  function permanent(m::AbstractMatrix,i::Int,sums)
+    if i>size(m,1) prod(sums;init=1)
+    else permanent(m,i+1,sums)-permanent(m,i+1,sums.+m[i,:])
     end
   end
-  (-1)^n*Permanent2(m,1,zeros(Int,n));
+  n=size(m,1)
+  (-1)^n*permanent(m,1,zeros(Int,n));
 end
 
 """
@@ -454,9 +454,8 @@ julia> Int.(symmetric_power(m,2))
 ```
 """
 function symmetric_power(A,m)
-  f(j)=prod(factorial,last.(tally(j)))
   basis=multisets(axes(A,1),m)
-  [permanent(A[i,j])//f(i) for i in basis, j in basis]
+  [permanent(A[i,j])//prod(factorial,last.(tally(i))) for i in basis, j in basis]
 end
 
 """
@@ -469,16 +468,21 @@ as  a vector of matrices, empty if the vector space is 0. This is useful to
 find whether two representations are isomorphic.
 """
 function transporter(l1::Vector{<:Matrix}, l2::Vector{<:Matrix})
+  if length(l1)!=length(l2) || isempty(l1) || !allequal(size.(l1)) || 
+   !allequal(size.(l2)) || size(l1[1])!=size(l2[1]) || 
+   size(l1[1],1)!=size(l1[1],2)
+   error("transporter takes as arguments two vectors of same nonzero length of square matrices all of the same size")
+  end
   n=size(l1[1],1)
   M=Vector{eltype(l1[1])}[]
   for i in 1:n, j in 1:n,  m in 1:length(l1)
     v=zero(l1[1])
-    v[i,:]+=l1[m][:,j]
-    v[:,j]-=l2[m][i,:]
+    v[i,:].+=@view l1[m][:,j]
+    v[:,j].-=@view l2[m][i,:]
     push!(M, vec(v))
   end
   M=rowspace(permutedims(reduce(hcat,M)))
-  M=M[filter(i->!iszero(M[i,:]),axes(M,1)),:]
+  M=M[filter(i->!iszero(@view M[i,:]),axes(M,1)),:]
   v=nullspace(M)
   if isempty(v) return v end
   map(w->reshape(w,(n,n)), eachcol(v))
@@ -653,11 +657,11 @@ function traces_words_mats(mats,words)
     mats=map((m,d)->numerator.(m.*d),mats,dens)
   end
   words=convert.(Vector{Int},words)
+  prods=Dict{Vector{Int},eltype(mats)}(Int[]=>mats[1]^0)
   trace(w)=all(isone,@view dens[w]) ? tr(prods[w]) :
                                       tr(prods[w])//prod(@view dens[w])
-  prods=Dict{Vector{Int},eltype(mats)}(Int[]=>mats[1]^0)
   for i in eachindex(mats) prods[[i]]=mats[i] end
-  res=map(words)do w
+  map(words)do w
     i=0
     while haskey(prods,@view w[1:i])
       if i==length(w) return trace(w) end
