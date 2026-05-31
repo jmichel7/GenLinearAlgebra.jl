@@ -278,21 +278,19 @@ comatrix(m)=last(charpolyandcomatrix(m))
 """
 `bigcell_decomposition(M [, b])`
 
-`M`  should be a square  matrix, and `b` specifies  a block structure for a
-matrix  of  same  size  as  `M`  (it  is  a  `Vector`  of  `Vector`s  whose
-concatenation  is `1:size(M,1)`).  If `b`  is not  given, the trivial block
+`M` should be a square matrix, and `b` specifies a block structure for `M`;
+it  is a partition of `1:size(M,1)`. If `b` is not given, the trivial block
 structure `[[i] for i in axes(M,1)]` is assumed.
 
-The  function  decomposes  `M`  as  a  product  `P₁ L P` where `P` is upper
-block-unitriangular   (with  identity  diagonal   blocks),  `P₁`  is  lower
-block-unitriangular  and `L` is block-diagonal for the block structure `b`.
-If  `M` is symmetric then  `P₁` is the transposed  of `P` and the result is
-the  pair  `[P,L]`;  else  the  result  is  the triple `[P₁,L,P]`. The only
-condition  for  this  decomposition  of  `M`  to  be  possible  is that the
-principal  minors  according  to  the  block  structure be invertible. This
-routine  is used  in the  Lusztig-Shoji algorithm  for computing  the Green
-functions  and the example  below is extracted  from the computation of the
-Green functions for `G₂`.
+The  function decomposes  `M` as  a product  `P₁ L  P` where, for the block
+structure   `b`,   `P`   is   upper   block-unitriangular,  `P₁`  is  lower
+block-unitriangular  (with identity diagonal blocks  in both cases) and `L`
+is  block-diagonal. If `M` is symmetric then `P₁` is the transposed of `P`.
+The   result  is  the  triple  `[P₁,L,P]`.  The  only  condition  for  this
+decomposition  of `M` to be possible is that the principal minors according
+to  the  block  structure  be  invertible.  This  routine  is  used  in the
+Lusztig-Shoji  algorithm for computing the  Green functions and the example
+below is extracted from the computation of the Green functions for `G₂`.
 
 ```julia-rep1
 julia> using LaurentPolynomials
@@ -311,9 +309,9 @@ julia> M=[q^6 q^0 q^3 q^3 q^5+q q^4+q^2; q^0 q^6 q^3 q^3 q^5+q q^4+q^2; q^3 q^3 
 
 julia> bb=[[2],[4],[6],[3,5],[1]];
 
-julia> (P,L)=bigcell_decomposition(M,bb);
+julia> L=bigcell_decomposition(M,bb);
 
-julia> P
+julia> L[3]
 6×6 Matrix{Pol{Int64}}:
  1    0  0    0    0        0
  q⁻⁶  1  q⁻³  q⁻³  q⁻¹+q⁻⁵  q⁻²+q⁻⁴
@@ -322,7 +320,7 @@ julia> P
  q⁻¹  0  0    0    1        0
  q⁻²  0  q⁻¹  0    q⁻¹      1
 
-julia> L
+julia> L[2]
 6×6 Matrix{Pol{Int64}}:
  q⁶-q⁴-1+q⁻²  0   0            0     0            0
  0            q⁶  0            0     0            0
@@ -331,47 +329,51 @@ julia> L
  0            0   0            0     q⁶-q⁴-1+q⁻²  0
  0            0   0            0     0            q⁶-1
 
-julia> M==transpose(P)*L*P
+julia> M==prod(L)
 true
 ```
 """
 function bigcell_decomposition(M,b=map(i->[i],axes(M,1)))
   L=one(M)
   P=one(M)
-  block(X,i,j)=X[b[i],b[j]]
-  if M==transpose(M)
+  block(X,i,j)=view(X,b[i],b[j])
+  if iszero(M-permutedims(M))
     for j in eachindex(b)
-      L[b[j],b[j]]=block(M,j,j)
-      if j>1 L[b[j],b[j]]-=sum(k->block(P,j,k)*block(L,k,k)*
-                              transpose(block(P,j,k)),1:j-1) end
+      block(L,j,j).=block(M,j,j)
+      if j>1 block(L,j,j).-=sum(k->block(P,j,k)*block(L,k,k)*
+                            permutedims(block(P,j,k)),1:j-1) end
       cb=comatrix(block(L,j,j))
       db=det_bareiss(block(L,j,j))
       for i in j+1:length(b)
-        P[b[i],b[j]]=block(M,i,j)
-        if j>1 P[b[i],b[j]]-=
-          sum(k->block(P,i,k)*block(L,k,k)*transpose(block(P,j,k)),1:j-1)
+        block(P,i,j).=block(M,i,j)
+        if j>1 block(P,i,j).-=
+          sum(k->block(P,i,k)*block(L,k,k)*permutedims(block(P,j,k)),1:j-1)
         end
-        P[b[i],b[j]]=(block(P,i,j)*cb).//db
+        block(P,i,j).=(block(P,i,j)*cb).//db
       end
     end
-    return permutedims(P),L
-  end
-  tP=one(M)
-  for j in eachindex(b)
-    L[b[j],b[j]]=block(M,j,j)-sum(k->block(P,j,k)*block(L,k,k)*
-                                  transpose(block(P,j,k)),1:j-1)
-    cb=comatrix(block(L,j,j))
-    db=det_bareiss(block(L,j,j))
-    for i in j+1:length(b)
-      P[b[i],b[j]]=block(M,i,j)-sum(k->block(P,i,k)*block(L,k,k)*
-                                     block(tP,k,j),1:j-1)
-      P[b[i],b[j]]=(block(P,i,j)*cb).//db
-      tP[b[j],b[i]]=cb*(block(M,j,i)-sum(k->block(P,j,k)*
-                                         block(L,k,k)*block(tP,k,i),1:j-1))
-      tP[b[i],b[j]]=block(tP,i,j).//db
+    P,L,permutedims(P)
+  else
+    tP=one(M)
+    for j in eachindex(b)
+      block(L,j,j).=block(M,j,j)
+      if j>1 block(L,j,j).-=sum(k->block(P,j,k)*block(L,k,k)*
+                              block(tP,k,j),1:j-1) end
+      cb=comatrix(block(L,j,j))
+      db=det_bareiss(block(L,j,j))
+      for i in j+1:length(b)
+        block(P,i,j).=block(M,i,j)
+        if j>1 block(P,i,j).-=sum(k->block(P,i,k)*block(L,k,k)*
+                                       block(tP,k,j),1:j-1) end
+        block(P,i,j).=(block(P,i,j)*cb).//db
+        block(tP,j,i).=block(M,j,i)
+        if j>1 block(tP,j,i).-=sum(k->block(P,j,k)*
+                                    block(L,k,k)*block(tP,k,i),1:j-1) end
+        block(tP,j,i).=(cb*block(tP,j,i)).//db
+      end
     end
+    P,L,tP
   end
-  (P,L,tP)
 end
 
 """
