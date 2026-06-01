@@ -286,7 +286,7 @@ The  function decomposes  `M` as  a product  `P₁ L  P` where, for the block
 structure   `b`,   `P`   is   upper   block-unitriangular,  `P₁`  is  lower
 block-unitriangular  (with identity diagonal blocks  in both cases) and `L`
 is  block-diagonal. If `M` is symmetric then `P₁` is the transposed of `P`.
-The   result  is  the  triple  `[P₁,L,P]`.  The  only  condition  for  this
+The   result  is  the  triple  `(P₁,L,P)`.  The  only  condition  for  this
 decomposition  of `M` to be possible is that the principal minors according
 to  the  block  structure  be  invertible.  This  routine  is  used  in the
 Lusztig-Shoji  algorithm for computing the  Green functions and the example
@@ -333,21 +333,22 @@ julia> M==prod(L)
 true
 ```
 """
-function bigcell_decomposition(M,b=map(i->[i],axes(M,1)))
+function bigcell_decomposition(M,b=map(i->[i],axes(M,1));sym=M==permutedims(M))
   L=one(M)
   P=one(M)
   block(X,i,j)=view(X,b[i],b[j])
-  if iszero(M-permutedims(M))
+  if sym
     for j in eachindex(b)
       block(L,j,j).=block(M,j,j)
-      if j>1 block(L,j,j).-=sum(k->block(P,j,k)*block(L,k,k)*
-                            permutedims(block(P,j,k)),1:j-1) end
+      for k in 1:j-1
+        block(L,j,j).-=block(P,j,k)*block(L,k,k)*permutedims(block(P,j,k))
+      end
       cb=comatrix(block(L,j,j))
       db=det_bareiss(block(L,j,j))
       for i in j+1:length(b)
         block(P,i,j).=block(M,i,j)
-        if j>1 block(P,i,j).-=
-          sum(k->block(P,i,k)*block(L,k,k)*permutedims(block(P,j,k)),1:j-1)
+        for k in 1:j-1
+          block(P,i,j).-=block(P,i,k)*block(L,k,k)*permutedims(block(P,j,k))
         end
         block(P,i,j).=(block(P,i,j)*cb).//db
       end
@@ -357,18 +358,21 @@ function bigcell_decomposition(M,b=map(i->[i],axes(M,1)))
     tP=one(M)
     for j in eachindex(b)
       block(L,j,j).=block(M,j,j)
-      if j>1 block(L,j,j).-=sum(k->block(P,j,k)*block(L,k,k)*
-                              block(tP,k,j),1:j-1) end
+      for k in 1:j-1
+        block(L,j,j).-=block(P,j,k)*block(L,k,k)*block(tP,k,j)
+      end
       cb=comatrix(block(L,j,j))
       db=det_bareiss(block(L,j,j))
       for i in j+1:length(b)
         block(P,i,j).=block(M,i,j)
-        if j>1 block(P,i,j).-=sum(k->block(P,i,k)*block(L,k,k)*
-                                       block(tP,k,j),1:j-1) end
+        for k in 1:j-1
+          block(P,i,j).-=block(P,i,k)*block(L,k,k)*block(tP,k,j)
+        end
         block(P,i,j).=(block(P,i,j)*cb).//db
         block(tP,j,i).=block(M,j,i)
-        if j>1 block(tP,j,i).-=sum(k->block(P,j,k)*
-                                    block(L,k,k)*block(tP,k,i),1:j-1) end
+        for k in 1:j-1
+          block(tP,j,i).-=block(P,j,k)*block(L,k,k)*block(tP,k,i)
+        end
         block(tP,j,i).=(cb*block(tP,j,i)).//db
       end
     end
