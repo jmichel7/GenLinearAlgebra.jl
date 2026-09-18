@@ -254,7 +254,7 @@ function charpolyandcomatrix(m)
     if i==n res=(-1)^(n-1)*C end
     C*=m
     a[n+1-i]=exactdiv(-tr(C),i)
-    if i!=n C+=a[n+1-i]*one(C) end
+    if i!=n C+=a[n+1-i].*one(C) end
   end
   a,res
 end
