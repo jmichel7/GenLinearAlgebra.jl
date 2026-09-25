@@ -34,7 +34,7 @@ For more information, look at
 """
 module GenLinearAlgebra
 using Combinat: combinations, multisets, tally
-using LinearAlgebra: det_bareiss, exactdiv, tr 
+using LinearAlgebra: det_bareiss, exactdiv, tr
 export echelon!, exterior_power, comatrix, bigcell_decomposition,
   ratio, charpoly, solutionmat, transporter,
   permanent, symmetric_power, diagconj_elt, lnullspace,
@@ -260,20 +260,39 @@ function charpolyandcomatrix(m)
 end
 
 """
-`charpoly(M::Matrix)`
-
-The characteristic polynomial of `M` (as a `Vector` of coefficients).
-This function works over any ring.
-"""
-charpoly(m)=first(charpolyandcomatrix(m))
-
-"""
 `comatrix(M::Matrix)`
 
 is defined by `comatrix(M)*M=det(M)*one(M)`.
-This function works over any ring.
+This function works over any torsion-free ring.
 """
 comatrix(m)=last(charpolyandcomatrix(m))
+
+#charpoly(m)=first(charpolyandcomatrix(m)) # does not work on finite fields
+
+"""
+`charpoly(M::Matrix)`
+
+The characteristic polynomial of `M` (as a `Vector` of coefficients), using
+Berkowitz's algorithm, which works over any ring.
+"""
+function charpoly(A)
+  n=size(A,1)
+  if n==0 return [one(eltype(A))] end
+  P=[1,-A[1,1]] # characteristic polynomial of submatrix [A[1,1];;]
+  for r in 2:n
+    A_prev=@view A[1:r-1, 1:r-1]
+    R=transpose(@view A[r, 1:r-1])
+    Y=[1,-A[r,r]]
+    V=A[1:r-1,r]
+    for k in 3:r+1
+      push!(Y,-R*V)
+      if k<r+1 V=A_prev*V end
+    end
+    # multiply by Toeplitz matrix of size (r+1)xr from Y
+    P=[0<=i-j<=r ? Y[i-j+1] : 0 for i in 1:r+1, j in 1:r]*P
+  end
+  reverse(P)
+end
 
 """
 `bigcell_decomposition(M [, b])`
@@ -474,8 +493,8 @@ as  a vector of matrices, empty if the vector space is 0. This is useful to
 find whether two representations are isomorphic.
 """
 function transporter(l1::Vector{<:Matrix}, l2::Vector{<:Matrix})
-  if length(l1)!=length(l2) || isempty(l1) || !allequal(size.(l1)) || 
-   !allequal(size.(l2)) || size(l1[1])!=size(l2[1]) || 
+  if length(l1)!=length(l2) || isempty(l1) || !allequal(size.(l1)) ||
+   !allequal(size.(l2)) || size(l1[1])!=size(l2[1]) ||
    size(l1[1],1)!=size(l1[1],2)
    error("transporter takes as arguments two vectors of same nonzero length of square matrices all of the same size")
   end
