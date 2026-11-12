@@ -53,7 +53,7 @@ rowspace. The first non-zero element of each line is 1, and such an element
 is  also the only non-zero in its  column.
 
 This  function  works  over  any  field  (it  is just assumed that non-zero
-entries  of `m` are  invertible, and have  `iszero`and `isone` methods, but
+entries  of `m` are  invertible, and have `iszero` and `isone` methods, but
 *it is not assumed* that their type has a `zero` or `one` method).
 ```julia-repl
 julia> m=[1 1 1 0;0 1 1 0;1 0 0 0;1 1 1 1]//1
@@ -83,7 +83,8 @@ function echelon!(m::AbstractMatrix)
     end
     for j in axes(m,1)
       if rk!=j && !iszero(m[j,k])
-        @views m[j,:].-=m[j,k].*m[rk,:]
+        a=m[j,k]; for i in axes(m,2) m[j,i]-=a.*m[rk,i] end
+      # @views m[j,:].-=m[j,k].*m[rk,:] # allocates in julia 1.13
       end
     end
   end
@@ -170,11 +171,11 @@ rank(m::AbstractMatrix)=length(independent_rows(m))
 
 computes the right nullspace of `m`, a matrix whose columns form a basis of
 the  space  of  the  vectors  `v`  such  that  `iszero(m*v)`.  Contrary  to
-`LinearALgebra.nullspace`   this  function  is   type-preserving  when  the
+`LinearAlgebra.nullspace`   this  function  is   type-preserving  when  the
 elements  of `m` belong to a field,  for instance the nullspace of a matrix
 of  rationals has the same type; also the nullspace of an integer matrix is
 a rational matrix. Not exported to avoid conflict with `LinearAlgebra`.
-```julia-rep1
+```julia-repl
 julia> m=[1 2 5;2 4 6]
 2×3 Matrix{Int64}:
  1  2  5
@@ -185,7 +186,8 @@ julia> GenLinearAlgebra.nullspace(m)
  -2
   1
   0
-
+```
+```julia-rep1
 julia> LinearAlgebra.nullspace(m)
 3×1 Matrix{Float64}:
  -0.8944271909999162
@@ -214,7 +216,7 @@ end
 The left nullspace of `m`, that is a matrix whose rows form a basis
 of the space of vectors `v` such that `iszero(permutedims(v)*m)`.
 """
-lnullspace(m::AbstractMatrix)=transpose(nullspace(transpose(m)))
+lnullspace(m::AbstractMatrix)=permutedims(nullspace(permutedims(m)))
 
 """
 `intersect_rowspace(m::AbstractMatrix,n::AbstractMatrix)`
@@ -270,13 +272,15 @@ comatrix(m)=last(charpolyandcomatrix(m))
 #charpoly(m)=first(charpolyandcomatrix(m)) # does not work on finite fields
 
 """
-`charpoly(M::Matrix)`
+`charpoly(M::AbstractMatrix)`
 
-The characteristic polynomial of `M` (as a `Vector` of coefficients), using
-Berkowitz's algorithm, which works over any ring.
+The  characteristic  polynomial  of  `M`  (as  a  `Vector` of coefficients,
+starting with the constant coefficient), using Berkowitz's algorithm, which
+works over any ring.
 """
-function charpoly(A)
+function charpoly(A::AbstractMatrix)
   n=size(A,1)
+  if n!=size(A,2) error("the matrix should be square") end
   if n==0 return [one(eltype(A))] end
   P=[1,-A[1,1]] # characteristic polynomial of submatrix [A[1,1];;]
   for r in 2:n
@@ -289,7 +293,7 @@ function charpoly(A)
       if k<r+1 V=A_prev*V end
     end
     # multiply by Toeplitz matrix of size (r+1)xr from Y
-    P=[0<=i-j<=r ? Y[i-j+1] : 0 for i in 1:r+1, j in 1:r]*P
+    P=[0<=i-j<=r ? Y[i-j+1] : zero(A[1,1]) for i in 1:r+1, j in 1:r]*P
   end
   reverse(P)
 end
@@ -425,6 +429,7 @@ julia> exterior_power(M,2)
 ```
 """
 function exterior_power(A,m)
+  if iszero(m) return [one(A[1,1]);;] end
   basis=combinations(1:size(A,1),m)
   [det_bareiss(A[i,j]) for i in basis, j in basis]
 end
@@ -451,19 +456,19 @@ julia> permanent([1 1 0 1 0 0 0; 0 1 1 0 1 0 0;0 0 1 1 0 1 0; 0 0 0 1 1 0 1;1 0 
 """
 function permanent(m::AbstractMatrix)
   function permanent(m::AbstractMatrix,i::Int,sums)
-    if i>size(m,1) prod(sums;init=1)
+    if i>size(m,1) prod(sums;init=one(m[1,1]))
     else permanent(m,i+1,sums)-permanent(m,i+1,sums.+m[i,:])
     end
   end
   n=size(m,1)
-  (-1)^n*permanent(m,1,zeros(Int,n));
+  (-1)^n*permanent(m,1,fill(zero(m[1,1]),n))
 end
 
 """
 `symmetric_power(m,n)`
 
 returns the `n`-th symmetric power of the square matrix `m`, in the basis
-naturally indexed by the `multisets` of `1:n`, where `n=size(m,1)`.
+naturally indexed by `multisets(1:a,n)`, where `a=size(m,1)`.
 
 ```julia-repl
 julia> m=[1 2;3 4]
@@ -484,7 +489,7 @@ function symmetric_power(A,m)
 end
 
 """
-`transporter(l1, l2 )`
+`transporter(l1, l2)`
 
 `l1`  and `l2` should be vectors of  the same length of square matrices all
 of the same size. The result is a basis of the vector space of matrices `A`
@@ -516,7 +521,7 @@ end
 transporter(l1::Matrix, l2::Matrix)=transporter([l1],[l2])
 
 """
-`ratio(v::abstractArray,w::abstractArray)`
+`ratio(v::AbstractArray,w::AbstractArray)`
 
 ratio `r` such that `v=r.*w`, `nothing` if `v` is not a multiple of `w`.
 """
@@ -610,10 +615,13 @@ end
 """
 `solutionmat(m,n::AbstractMatrix)`
 
-return a matrix `x` such that `x*m==n`. This is interesting when `m`
-is not invertible.
+return  a matrix `x` such  that `x*m==n`, or `nothing`  when no such matrix
+exists. This is interesting when `m` is not invertible.
 """
-solutionmat(m,n::AbstractMatrix)=permutedims(reduce(hcat,solutionmat.(Ref(m),eachrow(n))))
+function solutionmat(m,n::AbstractMatrix)
+  res=permutedims(reduce(hcat,solutionmat.(Ref(m),eachrow(n))))
+  if !any(isnothing,res) res end
+end
 
 """
 `diagconj_elt(M,N)`
@@ -622,7 +630,7 @@ solutionmat(m,n::AbstractMatrix)=permutedims(reduce(hcat,solutionmat.(Ref(m),eac
 a vector `d` such that `N==inv(Diagonal(d))*M*Diagonal(d)` if such a vector
 exists, and `nothing` otherwise.
 
-```julia_repl
+```julia-repl
 julia> M=[1 2;2 1];N=[1 4;1 1]
 2×2 Matrix{Int64}:
  1  4
@@ -639,15 +647,25 @@ function diagconj_elt(M::AbstractMatrix, N::AbstractMatrix)
     error("matrices must be square and of the same size")
   end
   if !all(i->M[i,i]==N[i,i],1:size(M,1)) return nothing end
-  d=fill(zero(eltype(M))*zero(eltype(N))*1//1,size(M,1));d[1]=1
   n=size(M,1)
-  for i in 1:n, j in i+1:n
-    if M[i,j]!=0
-      if N[i,j]==0 return nothing end
-      if d[i]!=0
-        c=d[i]*N[i,j]//M[i,j]
-        if d[j]!=0 if c!=d[j] return nothing end
-        else d[j]=c end
+  d=fill(zero(eltype(M))*zero(eltype(N))*1//1,n)
+  for start in 1:n
+    d[start]==0 || continue
+    d[start]=1
+    todo=[start]
+    while !isempty(todo)
+      i=pop!(todo)
+      for j in 1:n
+        j==i && continue
+        c = if M[i,j]!=0
+          N[i,j]==0 && return nothing
+          d[i]*N[i,j]//M[i,j] 
+        elseif M[j,i]!=0
+          N[j,i]==0 && return nothing
+          d[i]*M[j,i]//N[j,i]
+        else continue end
+        if d[j]==0 d[j]=c; push!(todo,j)
+        elseif c!=d[j] return nothing end
       end
     end
   end
@@ -721,9 +739,18 @@ julia> all_ge_1([1 1 -1;1 -1 1;-1 1 1])
 ```
 """
 function all_ge_1(M::Matrix;approx=x->x)
-  M0=M
   S=independent_rows(M)
-  if length(S)<size(M,2) return nothing end
+  if length(S)<size(M,2)
+    # The equations only see M*v, and the projection of v onto rowspace(M)
+    # has the same image, so a solution can always be taken in the row space.
+    # In the basis R of that space the system becomes
+    # (M*R')*w >= 1, where M*R' has full column rank, so recurse and lift back.
+    R=rowspace(M)
+    w=all_ge_1(M*permutedims(R);approx)
+    w===nothing && return nothing
+    return permutedims(R)*w
+  end
+  M0=M
   T=inv(M[S,:])
   M*=T
   M=hcat(fill(-1,size(M,1)),M)
@@ -746,7 +773,6 @@ function all_ge_1(M::Matrix;approx=x->x)
     for j in axes(M,1) if j!=i M[j,:]-=M[i,:]*M[j,p] end end
     S[i-1]=p
   end
-  M
 end
 
 end
